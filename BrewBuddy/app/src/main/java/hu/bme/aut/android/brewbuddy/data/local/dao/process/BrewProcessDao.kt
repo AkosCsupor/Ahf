@@ -13,11 +13,33 @@ interface BrewProcessDao {
     @Query(
         """
         SELECT * FROM brew_processes
-        WHERE completed = 0
+        WHERE isCompleted = 0
+        ORDER BY startedAt DESC
         """
     )
     fun observeActiveProcesses():
             Flow<List<BrewProcessEntity>>
+
+    @Query(
+        """
+        SELECT * FROM brew_processes
+        WHERE isCompleted = 1
+        ORDER BY startedAt DESC
+        LIMIT 10
+        """
+    )
+    fun observeFinishedProcesses():
+            Flow<List<BrewProcessEntity>>
+
+    @Query(
+        """
+        SELECT * FROM brew_processes
+        WHERE id = :processId
+        """
+    )
+    fun observeProcessById(
+        processId: Long
+    ): Flow<BrewProcessEntity?>
 
     @Insert(
         onConflict =
@@ -25,5 +47,30 @@ interface BrewProcessDao {
     )
     suspend fun insertProcess(
         process: BrewProcessEntity
+    ): Long
+
+    @Query(
+        """
+        UPDATE brew_processes
+        SET isCompleted = 1
+        WHERE id = :processId
+        """
+    )
+    suspend fun finishProcess(
+        processId: Long
+    )
+
+    @Query(
+        """
+        UPDATE brew_processes
+        SET currentStepIndex = :stepIndex,
+            currentStepStartedAt = :startedAt
+        WHERE id = :processId
+        """
+    )
+    suspend fun updateCurrentStep(
+        processId: Long,
+        stepIndex: Int,
+        startedAt: Long
     )
 }

@@ -2,6 +2,7 @@ package hu.bme.aut.android.brewbuddy.worker
 
 import android.content.Context
 import androidx.work.Data
+import androidx.work.ExistingWorkPolicy
 import androidx.work.OneTimeWorkRequestBuilder
 import androidx.work.WorkManager
 import java.util.concurrent.TimeUnit
@@ -12,10 +13,17 @@ object BrewTimerScheduler {
 
         context: Context,
 
+        processId: Long,
+
+        stepId: Long,
+
         stepTitle: String,
 
-        durationMinutes: Int
+        delaySeconds: Int
     ) {
+
+        val safeDelay =
+            delaySeconds.coerceAtLeast(1)
 
         val data =
             Data.Builder()
@@ -29,14 +37,18 @@ object BrewTimerScheduler {
             OneTimeWorkRequestBuilder<
                     BrewTimerWorker>()
                 .setInitialDelay(
-                    durationMinutes.toLong(),
-                    TimeUnit.MINUTES
+                    safeDelay.toLong(),
+                    TimeUnit.SECONDS
                 )
                 .setInputData(data)
                 .build()
 
         WorkManager
             .getInstance(context)
-            .enqueue(request)
+            .enqueueUniqueWork(
+                "brew_step_timer_${processId}_${stepId}",
+                ExistingWorkPolicy.REPLACE,
+                request
+            )
     }
 }

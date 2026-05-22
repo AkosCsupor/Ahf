@@ -31,22 +31,6 @@ fun BrewToolsScreen() {
         mutableStateOf(0.0)
     }
 
-    var originalVolume by remember {
-        mutableStateOf("")
-    }
-
-    var targetVolume by remember {
-        mutableStateOf("")
-    }
-
-    var originalIngredient by remember {
-        mutableStateOf("")
-    }
-
-    var scaledIngredient by remember {
-        mutableStateOf(0.0)
-    }
-
     Scaffold(
         topBar = {
             TopAppBar(
@@ -118,79 +102,6 @@ fun BrewToolsScreen() {
                             "Estimated ABV: " +
                                     "%.2f".format(abv) +
                                     "%"
-                    )
-                }
-            }
-
-            Text("Recipe Scaling")
-
-            OutlinedTextField(
-                value = originalVolume,
-                onValueChange = {
-                    originalVolume = it
-                },
-                label = {
-                    Text("Original Volume")
-                }
-            )
-
-            OutlinedTextField(
-                value = targetVolume,
-                onValueChange = {
-                    targetVolume = it
-                },
-                label = {
-                    Text("Target Volume")
-                }
-            )
-
-            OutlinedTextField(
-                value = originalIngredient,
-                onValueChange = {
-                    originalIngredient = it
-                },
-                label = {
-                    Text("Ingredient Amount")
-                }
-            )
-
-            Button(
-                onClick = {
-
-                    val originalVol =
-                        originalVolume.toDoubleOrNull()
-                            ?: 1.0
-
-                    val targetVol =
-                        targetVolume.toDoubleOrNull()
-                            ?: 1.0
-
-                    val ingredient =
-                        originalIngredient.toDoubleOrNull()
-                            ?: 0.0
-
-                    scaledIngredient =
-                        ingredient *
-                                (targetVol / originalVol)
-                }
-            ) {
-
-                Text("Scale Recipe")
-            }
-
-            Card {
-
-                Column(
-                    modifier =
-                        Modifier.padding(16.dp)
-                ) {
-
-                    Text(
-                        text =
-                            "Scaled Ingredient: " +
-                                    "%.2f".format(
-                                        scaledIngredient
-                                    )
                     )
                 }
             }

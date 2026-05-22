@@ -7,8 +7,6 @@ import androidx.navigation.compose.composable
 import hu.bme.aut.android.brewbuddy.presentation.home.HomeScreen
 import hu.bme.aut.android.brewbuddy.presentation.inventory.InventoryScreen
 import hu.bme.aut.android.brewbuddy.presentation.recipe.RecipeScreen
-import hu.bme.aut.android.brewbuddy.presentation.addrecipe.AddRecipeScreen
-import androidx.hilt.navigation.compose.hiltViewModel
 import hu.bme.aut.android.brewbuddy.presentation.brewday.BrewDayScreen
 import hu.bme.aut.android.brewbuddy.presentation.brewhistory.BrewHistoryScreen
 import hu.bme.aut.android.brewbuddy.presentation.recipedetails.RecipeDetailsScreen
@@ -22,10 +20,14 @@ object Routes {
     const val RECIPES = "recipes"
     const val INVENTORY = "inventory"
     const val ADD_RECIPE = "add_recipe"
+    const val ADD_INVENTORY = "add_inventory"
     const val RECIPE_DETAILS = "recipe_details"
     const val BREW_TOOLS = "brew_tools"
     const val BREW_DAY = "brew_day"
     const val BREW_HISTORY = "brew_history"
+    const val PROCESSES = "processes"
+    const val ACTIVE_PROCESS = "active_process"
+    const val INVENTORY_DETAILS = "inventory_details"
 }
 
 @Composable
@@ -52,10 +54,17 @@ fun NavGraph(
             )
         }
 
-        composable(Routes.ADD_RECIPE) {
-            AddRecipeScreen(
-                navController = navController,
-                viewModel = hiltViewModel()
+        composable(
+            route = "${Routes.ADD_RECIPE}?recipeId={recipeId}",
+            arguments = listOf(
+                androidx.navigation.navArgument("recipeId") {
+                    type = androidx.navigation.NavType.LongType
+                    defaultValue = -1L
+                }
+            )
+        ) {
+            AddEditRecipeScreen(
+                navController = navController
             )
         }
 
@@ -64,16 +73,15 @@ fun NavGraph(
         }
 
         composable(
-            route = "${Routes.RECIPE_DETAILS}/{recipeId}"
-        ) { backStackEntry ->
-            val recipeId = backStackEntry.arguments
-                ?.getString("recipeId")
-                ?.toLongOrNull()
-                ?: 0L
-
+            route = "${Routes.RECIPE_DETAILS}/{recipeId}",
+            arguments = listOf(
+                androidx.navigation.navArgument("recipeId") {
+                    type = androidx.navigation.NavType.LongType
+                }
+            )
+        ) {
             RecipeDetailsScreen(
-                navController = navController,
-                recipeId = recipeId
+                navController = navController
             )
         }
 
@@ -86,30 +94,25 @@ fun NavGraph(
                 navController = navController
             )
         }
-        composable("processes") {
+        composable(Routes.PROCESSES) {
 
             ProcessScreen(
                 navController = navController
             )
         }
         composable(
-            "active_process/{processId}"
+            "${Routes.ACTIVE_PROCESS}/{processId}",
+            arguments = listOf(
+                androidx.navigation.navArgument("processId") {
+                    type = androidx.navigation.NavType.LongType
+                }
+            )
         ) {
 
-            ActiveProcessScreen()
+            ActiveProcessScreen(navController = navController)
         }
         composable(
-            "ingredient_editor/{ingredientId}"
-        ) {
-
-        }
-        composable(
-            route = "recipe_details/{recipeId}"
-        ){
-
-        }
-        composable(
-            route = "add_inventory"
+            route = Routes.ADD_INVENTORY
         ) {
 
             AddEditInventoryScreen(
@@ -119,30 +122,12 @@ fun NavGraph(
 
         composable(
             route =
-                "inventory_details/{ingredientId}"
+                "${Routes.INVENTORY_DETAILS}/{ingredientId}"
         ) {
 
             AddEditInventoryScreen(
                 navController = navController
             )
         }
-            composable(
-                route = "add_recipe"
-            ) {
-
-            }
-            composable(
-                route = "add_recipe"
-            ) {
-
-                AddEditRecipeScreen(
-                    navController = navController
-                )
-            }
-
-
-
-
-        }
     }
-
+}

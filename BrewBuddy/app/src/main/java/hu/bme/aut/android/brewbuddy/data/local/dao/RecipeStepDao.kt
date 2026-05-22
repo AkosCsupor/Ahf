@@ -38,4 +38,7 @@ interface RecipeStepDao {
     suspend fun deleteStep(
         stepId: Long
     )
+
+    @Query("DELETE FROM recipe_steps WHERE recipeId = :recipeId")
+    suspend fun deleteStepsForRecipe(recipeId: Long)
 }

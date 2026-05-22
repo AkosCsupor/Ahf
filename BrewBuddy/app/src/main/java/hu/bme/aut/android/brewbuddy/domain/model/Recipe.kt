@@ -20,5 +20,9 @@ data class Recipe(
 
     val abv: Double? = null,
 
-    val notes: String? = null
+    val notes: String? = null,
+
+    val imageUri: String? = null,
+
+    val ingredients: List<Ingredient> = emptyList()
 )

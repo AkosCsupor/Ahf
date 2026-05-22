@@ -15,5 +15,9 @@ data class RecipeEntity(
 
     val batchSize: Double,
 
-    val description: String
+    val description: String,
+
+    val imageUri: String? = null,
+
+    val abv: Double? = null
 )

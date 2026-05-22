@@ -14,6 +14,7 @@ interface IngredientDao {
     @Query(
         """
         SELECT * FROM ingredients
+        WHERE recipeId = 0
         ORDER BY name ASC
         """
     )
@@ -30,6 +31,9 @@ interface IngredientDao {
         id: Long
     ): IngredientEntity?
 
+    @Query("SELECT * FROM ingredients WHERE recipeId = :recipeId")
+    fun observeIngredientsForRecipe(recipeId: Long): Flow<List<IngredientEntity>>
+
     @Insert(
         onConflict =
             OnConflictStrategy.REPLACE
@@ -42,4 +46,10 @@ interface IngredientDao {
     suspend fun deleteIngredient(
         ingredient: IngredientEntity
     )
+
+    @Query("DELETE FROM ingredients WHERE id = :id")
+    suspend fun deleteIngredientById(id: Long)
+
+    @Query("DELETE FROM ingredients WHERE recipeId = :recipeId")
+    suspend fun deleteIngredientsForRecipe(recipeId: Long)
 }

@@ -2,6 +2,8 @@ package hu.bme.aut.android.brewbuddy.domain.repository
 
 import hu.bme.aut.android.brewbuddy.domain.model.Recipe
 import hu.bme.aut.android.brewbuddy.domain.model.RecipeStep
+import hu.bme.aut.android.brewbuddy.domain.model.Ingredient
+import hu.bme.aut.android.brewbuddy.domain.model.BrewHistory
 import kotlinx.coroutines.flow.Flow
 
 interface RecipeRepository {
@@ -31,5 +33,33 @@ interface RecipeRepository {
 
     suspend fun deleteRecipeStep(
         stepId: Long
+    )
+
+    suspend fun clearRecipeSteps(
+        recipeId: Long
+    )
+
+    fun observeIngredients(
+        recipeId: Long
+    ): Flow<List<Ingredient>>
+
+    suspend fun insertIngredient(
+        ingredient: Ingredient,
+        recipeId: Long
+    )
+
+    suspend fun deleteIngredient(
+        ingredient: Ingredient
+    )
+
+    suspend fun clearIngredients(
+        recipeId: Long
+    )
+
+    fun getBrewHistory():
+            Flow<List<BrewHistory>>
+
+    suspend fun insertBrewHistory(
+        brewHistory: BrewHistory
     )
 }

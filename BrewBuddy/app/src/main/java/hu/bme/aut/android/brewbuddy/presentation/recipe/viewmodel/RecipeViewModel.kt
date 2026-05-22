@@ -1,5 +1,4 @@
 package hu.bme.aut.android.brewbuddy.presentation.recipe.viewmodel
-import hu.bme.aut.android.brewbuddy.domain.model.MissingIngredient
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import hu.bme.aut.android.brewbuddy.domain.model.Recipe
@@ -25,13 +24,11 @@ class RecipeViewModel @Inject constructor(
     init {
 
         loadRecipes()
-
-        insertSampleRecipes()
     }
 
     private fun loadRecipes() {
 
-        repository.getRecipes()
+        repository.observeRecipes()
             .onEach {
 
                 _recipes.value = it
@@ -43,28 +40,6 @@ class RecipeViewModel @Inject constructor(
         viewModelScope.launch {
 
             repository.insertRecipe(recipe)
-        }
-    }
-    private fun insertSampleRecipes() {
-
-        viewModelScope.launch {
-
-            if (_recipes.value.isEmpty()) {
-
-                repository.insertRecipe(
-                    Recipe(
-                        id = 0,
-                        name = "IPA",
-                        style = "American IPA",
-                        batchSize = 20.0,
-                        description = "Hoppy and bitter beer",
-
-                    )
-                )
-
-
-
-            }
         }
     }
 }

@@ -1,4 +1,4 @@
-package hu.bme.aut.android.brewbuddy.presentation.recipes
+package hu.bme.aut.android.brewbuddy.presentation.recipe
 
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.PaddingValues
@@ -19,8 +19,9 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
+import hu.bme.aut.android.brewbuddy.navigation.Routes
 import hu.bme.aut.android.brewbuddy.presentation.components.RecipeCard
-import hu.bme.aut.android.brewbuddy.presentation.recipes.viewmodel.RecipeViewModel
+import hu.bme.aut.android.brewbuddy.presentation.recipe.viewmodel.RecipeViewModel
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -56,7 +57,7 @@ fun RecipeScreen(
                 onClick = {
 
                     navController.navigate(
-                        "add_recipe"
+                        Routes.ADD_RECIPE
                     )
                 }
             ) {
@@ -102,7 +103,7 @@ fun RecipeScreen(
 
                         navController.navigate(
 
-                            "recipe_details/${recipe.id}"
+                            "${Routes.RECIPE_DETAILS}/${recipe.id}"
                         )
                     }
                 )

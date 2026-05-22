@@ -49,6 +49,12 @@ android {
         jvmTarget = "17"
     }
 
+    java {
+        toolchain {
+            languageVersion.set(JavaLanguageVersion.of(17))
+        }
+    }
+
     buildFeatures {
 
         compose = true
@@ -56,9 +62,6 @@ android {
 }
 
 dependencies {
-    implementation(
-        "androidx.work:work-runtime-ktx:2.9.1"
-    )
     implementation(libs.androidx.core.ktx)
 
     implementation(libs.androidx.lifecycle.runtime.ktx)

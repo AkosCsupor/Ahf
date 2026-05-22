@@ -10,6 +10,7 @@ import dagger.hilt.components.SingletonComponent
 import hu.bme.aut.android.brewbuddy.data.local.AppDatabase
 import hu.bme.aut.android.brewbuddy.data.local.dao.BrewProcessDao
 import hu.bme.aut.android.brewbuddy.data.local.dao.BrewStepDao
+import hu.bme.aut.android.brewbuddy.data.local.dao.BrewHistoryDao
 import hu.bme.aut.android.brewbuddy.data.local.dao.IngredientDao
 import hu.bme.aut.android.brewbuddy.data.local.dao.RecipeDao
 import hu.bme.aut.android.brewbuddy.data.local.dao.RecipeStepDao
@@ -39,7 +40,9 @@ object DatabaseModule {
             AppDatabase::class.java,
 
             "brewbuddy_database"
-        ).build()
+        )
+            .fallbackToDestructiveMigration()
+            .build()
     }
 
     @Provides
@@ -83,12 +86,24 @@ object DatabaseModule {
     }
 
     @Provides
+    fun provideBrewHistoryDao(
+        database: AppDatabase
+    ): BrewHistoryDao {
+
+        return database.brewHistoryDao()
+    }
+
+    @Provides
     @Singleton
     fun provideRecipeRepository(
 
         recipeDao: RecipeDao,
 
-        recipeStepDao: RecipeStepDao
+        recipeStepDao: RecipeStepDao,
+
+        ingredientDao: IngredientDao,
+
+        brewHistoryDao: BrewHistoryDao
 
     ): RecipeRepository {
 
@@ -96,7 +111,11 @@ object DatabaseModule {
 
             recipeDao,
 
-            recipeStepDao
+            recipeStepDao,
+
+            ingredientDao,
+
+            brewHistoryDao
         )
     }
 

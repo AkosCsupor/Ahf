@@ -1,4 +1,4 @@
-package hu.bme.aut.android.brewbuddy.domain.model
+package hu.bme.aut.android.brewbuddy.domain.model.process
 
 data class BrewProcess(
 
@@ -11,6 +11,8 @@ data class BrewProcess(
     val startedAt: Long,
 
     val currentStepIndex: Int,
+
+    val currentStepStartedAt: Long,
 
     val isCompleted: Boolean,
 

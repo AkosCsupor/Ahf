@@ -19,6 +19,8 @@ data class BrewProcessEntity(
 
     val currentStepIndex: Int,
 
+    val currentStepStartedAt: Long,
+
     val isCompleted: Boolean,
 
     val fermentationEndTime: Long?

@@ -5,7 +5,9 @@ import androidx.room.Delete
 import androidx.room.Insert
 import androidx.room.OnConflictStrategy
 import androidx.room.Query
+import androidx.room.Transaction
 import hu.bme.aut.android.brewbuddy.data.local.entity.RecipeEntity
+import hu.bme.aut.android.brewbuddy.data.local.relation.RecipeWithIngredients
 import kotlinx.coroutines.flow.Flow
 
 @Dao
@@ -22,13 +24,17 @@ interface RecipeDao {
         id: Long
     ): RecipeEntity?
 
-    @Insert(
-        onConflict = OnConflictStrategy.REPLACE
-    )
-
     @Query("SELECT * FROM recipes")
     fun observeRecipes():
             Flow<List<RecipeEntity>>
+
+    @Transaction
+    @Query("SELECT * FROM recipes")
+    fun observeRecipesWithIngredients(): Flow<List<RecipeWithIngredients>>
+
+    @Transaction
+    @Query("SELECT * FROM recipes WHERE id = :id")
+    suspend fun getRecipeWithIngredientsById(id: Long): RecipeWithIngredients?
 
     @Insert(
         onConflict = OnConflictStrategy.REPLACE

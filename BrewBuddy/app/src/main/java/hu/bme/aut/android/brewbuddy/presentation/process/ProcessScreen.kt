@@ -106,7 +106,7 @@ fun ProcessScreen(
 
                 Text(
                     text =
-                        "Recently Finished",
+                        "Latest 10 Completed",
 
                     style =
                         MaterialTheme

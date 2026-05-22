@@ -30,10 +30,9 @@ class RecipeDetailsViewModel @Inject constructor(
 ) : ViewModel() {
 
     private val recipeId: Long =
-        checkNotNull(
-
-            savedStateHandle["recipeId"]
-        )
+        savedStateHandle.get<Long>("recipeId")
+            ?: savedStateHandle.get<String>("recipeId")?.toLongOrNull()
+            ?: throw IllegalStateException("recipeId is missing or invalid")
 
     private val _recipe =
         MutableStateFlow<Recipe?>(
@@ -88,7 +87,7 @@ class RecipeDetailsViewModel @Inject constructor(
         }
     }
 
-    fun startBrewing() {
+    fun startBrewing(targetBatchSize: Double? = null) {
 
         viewModelScope.launch {
 
@@ -96,30 +95,32 @@ class RecipeDetailsViewModel @Inject constructor(
                 recipe.value
                     ?: return@launch
 
-            val brewSteps =
+            val scaleFactor = if (targetBatchSize != null && currentRecipe.batchSize > 0) {
+                targetBatchSize / currentRecipe.batchSize
+            } else {
+                1.0
+            }
 
-                steps.value.map {
-
-                    BrewStep(
-
-                        id = 0,
-
-                        processId = 0,
-
-                        title = it.title,
-
-                        description =
-                            it.description,
-
-                        durationMinutes =
-                            it.durationMinutes,
-
-                        stepOrder =
-                            it.stepOrder,
-
-                        completed = false
-                    )
+            val brewSteps = steps.value.map { recipeStep ->
+                val description = if (scaleFactor != 1.0) {
+                    val ingredientsList = currentRecipe.ingredients.joinToString("\n") {
+                        "- ${it.name}: ${"%.2f".format(it.amount * scaleFactor)} ${it.unit}"
+                    }
+                    "${recipeStep.description}\n\nScaled Ingredients:\n$ingredientsList"
+                } else {
+                    recipeStep.description
                 }
+
+                BrewStep(
+                    id = 0,
+                    processId = 0,
+                    title = recipeStep.title,
+                    description = description,
+                    durationMinutes = recipeStep.durationMinutes,
+                    stepOrder = recipeStep.stepOrder,
+                    completed = false
+                )
+            }
 
             brewProcessRepository
                 .createProcessFromRecipe(
@@ -127,8 +128,11 @@ class RecipeDetailsViewModel @Inject constructor(
                     recipeId =
                         currentRecipe.id,
 
-                    recipeName =
-                        currentRecipe.name,
+                    recipeName = if (scaleFactor != 1.0) {
+                        "${currentRecipe.name} (${"%.1f".format(targetBatchSize)}L)"
+                    } else {
+                        currentRecipe.name
+                    },
 
                     steps = brewSteps
                 )

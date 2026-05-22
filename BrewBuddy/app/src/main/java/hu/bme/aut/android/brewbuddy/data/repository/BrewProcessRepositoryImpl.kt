@@ -21,6 +21,42 @@ class BrewProcessRepositoryImpl @Inject constructor(
 
 ) : BrewProcessRepository {
 
+    override fun observeProcessById(
+        processId: Long
+    ): Flow<BrewProcess?> {
+
+        return brewProcessDao
+            .observeProcessById(processId)
+            .map { entity ->
+
+                entity?.let {
+
+                    BrewProcess(
+
+                        id = it.id,
+
+                        recipeId = it.recipeId,
+
+                        recipeName = it.recipeName,
+
+                        startedAt = it.startedAt,
+
+                        currentStepIndex =
+                            it.currentStepIndex,
+
+                        currentStepStartedAt =
+                            it.currentStepStartedAt,
+
+                        isCompleted =
+                            it.isCompleted,
+
+                        fermentationEndTime =
+                            it.fermentationEndTime
+                    )
+                }
+            }
+    }
+
     override fun observeActiveProcesses():
             Flow<List<BrewProcess>> {
 
@@ -43,6 +79,88 @@ class BrewProcessRepositoryImpl @Inject constructor(
                         startedAt =
                             entity.startedAt,
 
+                        currentStepIndex =
+                            entity.currentStepIndex,
+
+                        currentStepStartedAt =
+                            entity.currentStepStartedAt,
+
+                        isCompleted =
+                            entity.isCompleted,
+
+                        fermentationEndTime =
+                            entity.fermentationEndTime
+                    )
+                }
+            }
+    }
+
+    override fun observeFinishedProcesses():
+            Flow<List<BrewProcess>> {
+
+        return brewProcessDao
+            .observeFinishedProcesses()
+            .map { entities ->
+
+                entities.map { entity ->
+
+                    BrewProcess(
+
+                        id = entity.id,
+
+                        recipeId =
+                            entity.recipeId,
+
+                        recipeName =
+                            entity.recipeName,
+
+                        startedAt =
+                            entity.startedAt,
+
+                        currentStepIndex =
+                            entity.currentStepIndex,
+
+                        currentStepStartedAt =
+                            entity.currentStepStartedAt,
+
+                        isCompleted =
+                            entity.isCompleted,
+
+                        fermentationEndTime =
+                            entity.fermentationEndTime
+                    )
+                }
+            }
+    }
+
+    override fun observeStepsForProcess(
+        processId: Long
+    ): Flow<List<BrewStep>> {
+
+        return brewStepDao
+            .observeStepsForProcess(processId)
+            .map { entities ->
+
+                entities.map { entity ->
+
+                    BrewStep(
+
+                        id = entity.id,
+
+                        processId =
+                            entity.processId,
+
+                        title = entity.title,
+
+                        description =
+                            entity.description,
+
+                        durationMinutes =
+                            entity.durationMinutes,
+
+                        stepOrder =
+                            entity.stepOrder,
+
                         completed =
                             entity.completed
                     )
@@ -59,7 +177,8 @@ class BrewProcessRepositoryImpl @Inject constructor(
         steps: List<BrewStep>
     ) {
 
-        brewProcessDao.insertProcess(
+        val processId =
+            brewProcessDao.insertProcess(
 
             BrewProcessEntity(
 
@@ -70,9 +189,16 @@ class BrewProcessRepositoryImpl @Inject constructor(
                 startedAt =
                     System.currentTimeMillis(),
 
-                completed = false
+                currentStepIndex = 0,
+
+                currentStepStartedAt =
+                    System.currentTimeMillis(),
+
+                isCompleted = false,
+
+                fermentationEndTime = null
             )
-        )
+            )
 
         steps.forEach { step ->
 
@@ -80,7 +206,7 @@ class BrewProcessRepositoryImpl @Inject constructor(
 
                 BrewStepEntity(
 
-                    processId = 0,
+                    processId = processId,
 
                     title = step.title,
 
@@ -97,5 +223,32 @@ class BrewProcessRepositoryImpl @Inject constructor(
                 )
             )
         }
+    }
+
+    override suspend fun completeStep(
+        stepId: Long
+    ) {
+
+        brewStepDao.completeStep(stepId)
+    }
+
+    override suspend fun finishProcess(
+        processId: Long
+    ) {
+
+        brewProcessDao.finishProcess(processId)
+    }
+
+    override suspend fun updateCurrentStep(
+        processId: Long,
+        stepIndex: Int,
+        startedAt: Long
+    ) {
+
+        brewProcessDao.updateCurrentStep(
+            processId = processId,
+            stepIndex = stepIndex,
+            startedAt = startedAt
+        )
     }
 }

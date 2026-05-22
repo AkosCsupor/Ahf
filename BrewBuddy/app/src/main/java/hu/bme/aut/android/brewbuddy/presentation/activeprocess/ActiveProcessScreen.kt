@@ -4,6 +4,7 @@ import androidx.compose.ui.platform.LocalContext
 import hu.bme.aut.android.brewbuddy.worker.BrewTimerScheduler
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -20,11 +21,13 @@ import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
+import androidx.navigation.NavController
+import hu.bme.aut.android.brewbuddy.navigation.Routes
 import hu.bme.aut.android.brewbuddy.presentation.activeprocess.viewmodel.ActiveProcessViewModel
 
 @Composable
 fun ActiveProcessScreen(
-
+    navController: NavController,
     viewModel: ActiveProcessViewModel =
         hiltViewModel()
 ) {
@@ -36,8 +39,27 @@ fun ActiveProcessScreen(
         viewModel.currentStepIndex
             .collectAsState()
 
+    val selectedStepIndex by
+        viewModel.selectedStepIndex
+            .collectAsState()
+
+    val remainingSeconds by
+        viewModel.remainingSeconds
+            .collectAsState()
+
+    val isPaused by
+        viewModel.isPaused
+            .collectAsState()
+
     val currentStep =
-        steps.getOrNull(currentStepIndex)
+        steps.getOrNull(selectedStepIndex)
+
+    val minutes = remainingSeconds / 60
+    val seconds = remainingSeconds % 60
+
+    val isViewingCurrent =
+        viewModel.isViewingCurrentStep()
+
     val context = LocalContext.current
     Scaffold {
 
@@ -61,18 +83,26 @@ fun ActiveProcessScreen(
                         .typography
                         .headlineMedium
             )
-            LaunchedEffect(currentStep?.id) {
+            LaunchedEffect(currentStepIndex) {
 
-                currentStep?.let {
+                val processStep =
+                    steps.getOrNull(currentStepIndex)
+
+                processStep?.let {
 
                     BrewTimerScheduler.scheduleTimer(
 
                         context = context,
 
+                        processId =
+                            viewModel.processIdValue,
+
+                        stepId = it.id,
+
                         stepTitle = it.title,
 
-                        durationMinutes =
-                            it.durationMinutes
+                        delaySeconds =
+                            remainingSeconds.toInt()
                     )
                 }
             }
@@ -99,7 +129,7 @@ fun ActiveProcessScreen(
 
                             text =
                                 "Step ${
-                                    currentStepIndex + 1
+                                    selectedStepIndex + 1
                                 }",
 
                             style =
@@ -135,6 +165,36 @@ fun ActiveProcessScreen(
                                     step.durationMinutes
                                 } min"
                         )
+
+                        if (isViewingCurrent) {
+
+                            Text(
+                                text =
+                                    "Remaining: %02d:%02d"
+                                        .format(
+                                            minutes,
+                                            seconds
+                                        )
+                            )
+
+                            Row(
+                                modifier = Modifier.fillMaxWidth(),
+                                horizontalArrangement = Arrangement.spacedBy(8.dp)
+                            ) {
+                                Button(
+                                    onClick = { viewModel.togglePause() },
+                                    modifier = Modifier.weight(1f)
+                                ) {
+                                    Text(if (isPaused) "Resume" else "Pause")
+                                }
+                                Button(
+                                    onClick = { viewModel.resetTimer() },
+                                    modifier = Modifier.weight(1f)
+                                ) {
+                                    Text("Reset")
+                                }
+                            }
+                        }
                     }
                 }
 
@@ -146,7 +206,7 @@ fun ActiveProcessScreen(
                     },
 
                     enabled =
-                        currentStepIndex > 0
+                        selectedStepIndex > 0
                 ) {
 
                     Text("Previous Step")
@@ -160,18 +220,36 @@ fun ActiveProcessScreen(
                     },
 
                     enabled =
-                        currentStepIndex <
+                        selectedStepIndex <
                                 steps.lastIndex
                 ) {
 
                     Text("Next Step")
                 }
 
+                if (!isViewingCurrent) {
+
+                    Button(
+
+                        onClick = {
+
+                            viewModel.jumpToCurrentStep()
+                        }
+                    ) {
+
+                        Text("Back To Current Step")
+                    }
+                }
+
                 Button(
 
                     onClick = {
 
-                        viewModel.completeCurrentStep()
+                        viewModel.completeCurrentStep {
+                            navController.navigate(Routes.PROCESSES) {
+                                popUpTo(Routes.HOME)
+                            }
+                        }
                     }
                 ) {
 

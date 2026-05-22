@@ -11,6 +11,8 @@ data class IngredientEntity(
     @PrimaryKey(autoGenerate = true)
     val id: Long = 0,
 
+    val recipeId: Long = 0,
+
     val name: String,
 
     val amount: Double,

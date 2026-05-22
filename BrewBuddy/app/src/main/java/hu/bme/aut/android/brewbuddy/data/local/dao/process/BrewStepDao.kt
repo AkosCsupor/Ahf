@@ -28,4 +28,15 @@ interface BrewStepDao {
     suspend fun insertStep(
         step: BrewStepEntity
     )
+
+    @Query(
+        """
+        UPDATE brew_steps
+        SET completed = 1
+        WHERE id = :stepId
+        """
+    )
+    suspend fun completeStep(
+        stepId: Long
+    )
 }
