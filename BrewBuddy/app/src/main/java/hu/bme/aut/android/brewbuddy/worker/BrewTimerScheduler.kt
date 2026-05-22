@@ -10,38 +10,25 @@ import java.util.concurrent.TimeUnit
 object BrewTimerScheduler {
 
     fun scheduleTimer(
-
         context: Context,
-
         processId: Long,
-
         stepId: Long,
-
         stepTitle: String,
-
-        delaySeconds: Int
+        delaySeconds: Long
     ) {
+        if (delaySeconds <= 0) return
 
-        val safeDelay =
-            delaySeconds.coerceAtLeast(1)
+        val data = Data.Builder()
+            .putString("stepTitle", stepTitle)
+            .putLong("processId", processId)
+            .putLong("stepId", stepId)
+            .build()
 
-        val data =
-            Data.Builder()
-                .putString(
-                    "stepTitle",
-                    stepTitle
-                )
-                .build()
-
-        val request =
-            OneTimeWorkRequestBuilder<
-                    BrewTimerWorker>()
-                .setInitialDelay(
-                    safeDelay.toLong(),
-                    TimeUnit.SECONDS
-                )
-                .setInputData(data)
-                .build()
+        val request = OneTimeWorkRequestBuilder<BrewTimerWorker>()
+            .setInitialDelay(delaySeconds, TimeUnit.SECONDS)
+            .setInputData(data)
+            .addTag("brew_timer")
+            .build()
 
         WorkManager
             .getInstance(context)
@@ -50,5 +37,15 @@ object BrewTimerScheduler {
                 ExistingWorkPolicy.REPLACE,
                 request
             )
+    }
+
+    fun cancelTimer(context: Context, processId: Long, stepId: Long) {
+        WorkManager
+            .getInstance(context)
+            .cancelUniqueWork("brew_step_timer_${processId}_${stepId}")
+    }
+    
+    fun cancelAllTimers(context: Context) {
+        WorkManager.getInstance(context).cancelAllWorkByTag("brew_timer")
     }
 }

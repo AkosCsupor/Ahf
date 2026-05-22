@@ -1,7 +1,5 @@
 package hu.bme.aut.android.brewbuddy.presentation.activeprocess
-import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.ui.platform.LocalContext
-import hu.bme.aut.android.brewbuddy.worker.BrewTimerScheduler
+
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -28,153 +26,59 @@ import hu.bme.aut.android.brewbuddy.presentation.activeprocess.viewmodel.ActiveP
 @Composable
 fun ActiveProcessScreen(
     navController: NavController,
-    viewModel: ActiveProcessViewModel =
-        hiltViewModel()
+    viewModel: ActiveProcessViewModel = hiltViewModel()
 ) {
+    val steps by viewModel.steps.collectAsState()
+    val currentStepIndex by viewModel.currentStepIndex.collectAsState()
+    val selectedStepIndex by viewModel.selectedStepIndex.collectAsState()
+    val remainingSeconds by viewModel.remainingSeconds.collectAsState()
+    val isPaused by viewModel.isPaused.collectAsState()
 
-    val steps by
-        viewModel.steps.collectAsState()
-
-    val currentStepIndex by
-        viewModel.currentStepIndex
-            .collectAsState()
-
-    val selectedStepIndex by
-        viewModel.selectedStepIndex
-            .collectAsState()
-
-    val remainingSeconds by
-        viewModel.remainingSeconds
-            .collectAsState()
-
-    val isPaused by
-        viewModel.isPaused
-            .collectAsState()
-
-    val currentStep =
-        steps.getOrNull(selectedStepIndex)
-
+    val currentStep = steps.getOrNull(selectedStepIndex)
     val minutes = remainingSeconds / 60
     val seconds = remainingSeconds % 60
+    val isViewingCurrent = viewModel.isViewingCurrentStep()
 
-    val isViewingCurrent =
-        viewModel.isViewingCurrentStep()
-
-    val context = LocalContext.current
-    Scaffold {
-
+    Scaffold { paddingValues ->
         Column(
-
             modifier = Modifier
                 .fillMaxSize()
-                .padding(it)
+                .padding(paddingValues)
                 .padding(16.dp),
-
-            verticalArrangement =
-                Arrangement.spacedBy(16.dp)
+            verticalArrangement = Arrangement.spacedBy(16.dp)
         ) {
-
             Text(
-
                 text = "Active Brewing Process",
-
-                style =
-                    MaterialTheme
-                        .typography
-                        .headlineMedium
+                style = MaterialTheme.typography.headlineMedium
             )
-            LaunchedEffect(currentStepIndex) {
 
-                val processStep =
-                    steps.getOrNull(currentStepIndex)
-
-                processStep?.let {
-
-                    BrewTimerScheduler.scheduleTimer(
-
-                        context = context,
-
-                        processId =
-                            viewModel.processIdValue,
-
-                        stepId = it.id,
-
-                        stepTitle = it.title,
-
-                        delaySeconds =
-                            remainingSeconds.toInt()
-                    )
-                }
-            }
             currentStep?.let { step ->
-
-                Card(
-
-                    modifier =
-                        Modifier.fillMaxWidth()
-                ) {
-
+                Card(modifier = Modifier.fillMaxWidth()) {
                     Column(
-
-                        modifier =
-                            Modifier.padding(16.dp),
-
-                        verticalArrangement =
-                            Arrangement.spacedBy(
-                                12.dp
-                            )
+                        modifier = Modifier.padding(16.dp),
+                        verticalArrangement = Arrangement.spacedBy(12.dp)
                     ) {
-
                         Text(
-
-                            text =
-                                "Step ${
-                                    selectedStepIndex + 1
-                                }",
-
-                            style =
-                                MaterialTheme
-                                    .typography
-                                    .titleLarge
+                            text = "Step ${selectedStepIndex + 1}",
+                            style = MaterialTheme.typography.titleLarge
                         )
 
                         Text(
                             text = step.title,
-
-                            style =
-                                MaterialTheme
-                                    .typography
-                                    .headlineSmall
+                            style = MaterialTheme.typography.headlineSmall
                         )
 
-                        Text(
-                            text =
-                                step.description
-                        )
+                        Text(text = step.description)
 
-                        Spacer(
-                            modifier =
-                                Modifier.height(
-                                    8.dp
-                                )
-                        )
+                        Spacer(modifier = Modifier.height(8.dp))
 
-                        Text(
-                            text =
-                                "Duration: ${
-                                    step.durationMinutes
-                                } min"
-                        )
+                        Text(text = "Duration: ${step.durationMinutes} min")
 
                         if (isViewingCurrent) {
-
                             Text(
-                                text =
-                                    "Remaining: %02d:%02d"
-                                        .format(
-                                            minutes,
-                                            seconds
-                                        )
+                                text = "Remaining: %02d:%02d".format(minutes, seconds),
+                                style = MaterialTheme.typography.titleLarge,
+                                color = if (remainingSeconds == 0L) MaterialTheme.colorScheme.error else MaterialTheme.colorScheme.primary
                             )
 
                             Row(
@@ -199,60 +103,41 @@ fun ActiveProcessScreen(
                 }
 
                 Button(
-
-                    onClick = {
-
-                        viewModel.previousStep()
-                    },
-
-                    enabled =
-                        selectedStepIndex > 0
+                    onClick = { viewModel.previousStep() },
+                    enabled = selectedStepIndex > 0,
+                    modifier = Modifier.fillMaxWidth()
                 ) {
-
                     Text("Previous Step")
                 }
 
                 Button(
-
-                    onClick = {
-
-                        viewModel.nextStep()
-                    },
-
-                    enabled =
-                        selectedStepIndex <
-                                steps.lastIndex
+                    onClick = { viewModel.nextStep() },
+                    enabled = selectedStepIndex < steps.lastIndex,
+                    modifier = Modifier.fillMaxWidth()
                 ) {
-
                     Text("Next Step")
                 }
 
                 if (!isViewingCurrent) {
-
                     Button(
-
-                        onClick = {
-
-                            viewModel.jumpToCurrentStep()
-                        }
+                        onClick = { viewModel.jumpToCurrentStep() },
+                        modifier = Modifier.fillMaxWidth()
                     ) {
-
                         Text("Back To Current Step")
                     }
                 }
 
                 Button(
-
                     onClick = {
-
                         viewModel.completeCurrentStep {
                             navController.navigate(Routes.PROCESSES) {
                                 popUpTo(Routes.HOME)
                             }
                         }
-                    }
+                    },
+                    modifier = Modifier.fillMaxWidth(),
+                    enabled = isViewingCurrent
                 ) {
-
                     Text("Complete Step")
                 }
             }
